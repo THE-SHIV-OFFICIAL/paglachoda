@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#090909" />
+    <title>MOVIE BOX</title>
+    <style>
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        background: #080b10;
+        color: #f4f1ea;
+        font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      }
+      .wrap {
+        box-sizing: border-box;
+        min-height: 100vh;
+        min-height: 100svh;
+        max-width: 500px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        text-align: center;
+        padding: max(28px, env(safe-area-inset-top)) 22px max(24px, env(safe-area-inset-bottom));
+        background:
+          radial-gradient(ellipse at 50% 0%, rgba(232,194,125,.10), transparent 42%),
+          linear-gradient(180deg, #080b10, #0c1118 58%, #080b10);
+      }
+      .logo {
+        font-size: 32px;
+        font-weight: 900;
+        letter-spacing: .01em;
+        background: linear-gradient(120deg, #f6e4bd, #d5aa62 64%, #f6e4bd);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .by {
+        font-size: 9px;
+        letter-spacing: 2.2px;
+        text-transform: uppercase;
+        color: #9a9eaa;
+      }
+      .bar {
+        display: none;
+      }
+      a { color: #e8c27d; font-size: 13px; }
+      .intro {
+        max-width: 330px;
+        margin: 2px 0 4px;
+        color: #a6acb7;
+        font-size: 13px;
+        line-height: 1.65;
+      }
+      .card {
+        margin-top: 4px;
+        width: 100%;
+        max-width: 350px;
+        border: 1px solid rgba(255,255,255,.09);
+        background: linear-gradient(145deg, rgba(22,29,39,.96), rgba(14,19,27,.98));
+        border-radius: 20px;
+        padding: 18px;
+        box-shadow: 0 20px 54px rgba(0,0,0,.24);
+      }
+      .label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #b9a078; font-weight: 800; }
+      .q { font-size: 19px; font-weight: 850; margin: 10px 0; }
+      input {
+        width: 80px; padding: 10px; border-radius: 12px; text-align: center;
+        border: 1px solid rgba(255,255,255,.15); background: #090d13; color: #fff; font-size: 16px; font-weight: 700;
+      }
+      button {
+        margin-top: 12px; width: 100%; padding: 13px; border: 0; border-radius: 13px;
+        font-weight: 900; color: #17120a; font-size: 13px;
+        background: linear-gradient(135deg, #f3d9a3, #c99a50);
+        box-shadow: 0 8px 24px rgba(185,132,54,.18);
+      }
+      button[disabled] { opacity: .48; box-shadow: none; }
+      .err { color: #ff6b6b; font-size: 12px; min-height: 16px; margin-top: 8px; }
+      .offline-action {
+        box-sizing: border-box;
+        display: block;
+        width: 100%;
+        max-width: 350px;
+        margin-top: 0;
+        padding: 14px 16px;
+        border: 1px solid rgba(232,194,125,.24);
+        border-radius: 13px;
+        background: rgba(232,194,125,.07);
+        color: #efd7aa;
+        font-size: 13px;
+        font-weight: 800;
+        text-decoration: none;
+      }
+      .offline-action:active { background: rgba(232,194,125,.14); }
+      input[type="checkbox"] {
+        width: 17px;
+        height: 17px;
+        margin: 0;
+        padding: 0;
+        accent-color: #d6ad67;
+      }
+      .settings-card { text-align:left; }
+      .settings-title { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:#9ca5b2; margin-bottom:12px; font-weight:800; }
+      .setting-row { display:flex; align-items:center; gap:10px; font-size:12px; color:#d4d8df; }
+      .footer-link { color:#838b97; font-size:11px; text-decoration:none; }
+    </style>
+  </head>
+  <body>
+    <!-- Bundled online launcher; the offline player is bundled beside this page. -->
+    <div class="wrap">
+      <div class="logo">MOVIE BOX</div>
+      <div class="by">YOUR MOVIE LIBRARY · ON THIS DEVICE</div>
+      <div class="bar"><i></i></div>
+      <p class="intro">
+        Browse movies online, or play videos you have already saved—no internet needed for local playback.
+      </p>
+      <div class="card">
+        <button id="go">Continue to online catalogue</button>
+        <div class="err" id="err"></div>
+      </div>
+      <a class="offline-action" href="offline.html">▶ &nbsp; Open offline library</a>
+      <div class="card settings-card">
+        <div class="settings-title">Playback preferences</div>
+        <label class="setting-row" style="margin-bottom:10px">
+          <input type="checkbox" id="hist" checked /> Watch history on
+        </label>
+        <label class="setting-row">
+          <input type="checkbox" id="fs" /> Open in fullscreen
+        </label>
+      </div>
+      <a class="footer-link" href="https://t.me/betabot_hub">MOVIE BOX · Beta Bot Hub</a>
+    </div>
+    <script>
+      // Online catalog. The shell and offline player stay bundled on this device.
+      // Site address can be changed without a new APK: set localStorage "mb-site-url".
+      var DEFAULT_SITE_URL = "https://betamovie.up.railway.app";
+      var SITE_URL = localStorage.getItem("mb-site-url") || DEFAULT_SITE_URL;
+      function checkOnlineSite() {
+        if (!navigator.onLine) return Promise.resolve(false);
+        var controller = new AbortController();
+        var timer = setTimeout(function () { controller.abort(); }, 4500);
+        return fetch(SITE_URL, {
+          method: "HEAD",
+          mode: "no-cors",
+          cache: "no-store",
+          signal: controller.signal
+        }).then(function () {
+          clearTimeout(timer);
+          return true;
+        }).catch(function () {
+          clearTimeout(timer);
+          return false;
+        });
+      }
+      document.getElementById("go").addEventListener("click", async function () {
+        var histOn = document.getElementById("hist").checked;
+        var fsOn = document.getElementById("fs").checked;
+        localStorage.setItem("mb-app-history", histOn ? "on" : "off");
+        localStorage.setItem("mb-app-fullscreen", fsOn ? "on" : "off");
+        var go = document.getElementById("go");
+        go.disabled = true;
+        go.textContent = "Checking connection…";
+        if (!(await checkOnlineSite())) {
+          location.href = "offline.html";
+          return;
+        }
+        if (fsOn && document.documentElement.requestFullscreen) {
+          try { document.documentElement.requestFullscreen(); } catch (e) {}
+        }
+        var sep = SITE_URL.indexOf("?") > -1 ? "&" : "?";
+        location.href = SITE_URL + sep + "history=" + (histOn ? "on" : "off");
+      });
+      document.getElementById("hist").checked = localStorage.getItem("mb-app-history") !== "off";
+      document.getElementById("fs").checked = localStorage.getItem("mb-app-fullscreen") === "on";
+      checkOnlineSite().then(function (available) {
+        if (!available) location.replace("offline.html");
+      });
+    </script>
+  </body>
+</html>

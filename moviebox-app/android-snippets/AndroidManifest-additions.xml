@@ -1,0 +1,47 @@
+<!--
+  MOVIE BOX — add these to android/app/src/main/AndroidManifest.xml
+  after running `npx cap add android`.
+
+  1) Inside <manifest> (above <application>):
+-->
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+    android:maxSdkVersion="28" />
+<uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+<uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<!-- needed so the downloaded APK can be installed from inside the app -->
+<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+<!--
+  2) Inside <application> … </application> add this provider so downloaded
+     files (APK + movies) can be opened / installed:
+-->
+<provider
+    android:name="androidx.core.content.FileProvider"
+    android:authorities="${applicationId}.fileprovider"
+    android:exported="false"
+    android:grantUriPermissions="true">
+    <meta-data
+        android:name="android.support.FILE_PROVIDER_PATHS"
+        android:resource="@xml/file_paths" />
+</provider>
+
+<!--
+  3) Copy file_paths.xml (in this folder) to
+     android/app/src/main/res/xml/file_paths.xml
+
+  4) On the <activity android:name=".MainActivity" ...> tag add these
+     attributes so fullscreen / rotation does not restart the player:
+
+     android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|screenLayout|locale|layoutDirection|fontScale|uiMode"
+     android:hardwareAccelerated="true"
+     android:screenOrientation="fullUser"
+
+  5) On the <application> tag:
+     android:usesCleartextTraffic="true"
+     android:hardwareAccelerated="true"
+     android:requestLegacyExternalStorage="true"
+-->
